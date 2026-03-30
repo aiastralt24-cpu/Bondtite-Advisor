@@ -43,6 +43,7 @@ export type Recommendation = {
   sourceLabel: string
   basisLabel: string | null
   alternateProducts: string[]
+  alternateReason: string | null
 }
 
 export type RecommendationComparisonRow = {
@@ -714,6 +715,7 @@ function getFallbackRecommendation(language: AppLanguage): Recommendation {
     sourceLabel: fallbackRecommendationText.sourceLabel[language],
     basisLabel: fallbackRecommendationText.basis[language],
     alternateProducts: [],
+    alternateReason: null,
   }
 }
 
@@ -741,6 +743,7 @@ function profileToRecommendation(
     sourceLabel: sourceLabelText[language],
     basisLabel,
     alternateProducts,
+    alternateReason: profile.why[language][1] ?? null,
   }
 }
 

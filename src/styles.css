@@ -237,10 +237,10 @@ textarea {
 .workspace h3,
 .workspace h4 {
   margin: 0;
-  font-family: var(--font-display);
-  font-weight: 800;
-  line-height: 1.04;
-  letter-spacing: -0.03em;
+  font-family: var(--font-body);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
   color: var(--text-strong);
 }
 
@@ -344,7 +344,7 @@ textarea {
   max-width: none;
   white-space: nowrap;
   font-size: clamp(2rem, 2.2vw, 2.45rem);
-  font-weight: 800;
+  font-weight: 700;
   color: #000000;
 }
 
@@ -744,7 +744,7 @@ textarea {
 
 .summary-panel h3 {
   margin-top: 6px;
-  font-size: 1.55rem;
+  font-size: 1.42rem;
 }
 
 .summary-note-inline {
@@ -938,9 +938,10 @@ textarea {
 
 .result-hero-heading {
   margin-top: 6px;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  line-height: 1.05;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.2;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.58);
 }
 
@@ -962,10 +963,10 @@ textarea {
 
 .result-product-name {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(1.7rem, 2vw, 2.3rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
   color: #ffffff;
 }
 
@@ -982,6 +983,11 @@ textarea {
   color: rgba(255, 255, 255, 0.82);
   max-width: 40ch;
   line-height: 1.5;
+}
+
+.hero-summary-line {
+  display: grid;
+  gap: 6px;
 }
 
 .basis-tags-hero {
@@ -1135,7 +1141,7 @@ textarea {
 
 .decision-proof {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   margin-top: 10px;
 }
 
@@ -1165,7 +1171,7 @@ textarea {
   margin: 0;
   padding-left: 18px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   font-family: var(--font-body);
   color: var(--text-body);
 }
@@ -1192,6 +1198,16 @@ textarea {
 
 .summary-chip-list-structured {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.summary-back {
+  width: auto;
 }
 
 .result-section ul {
@@ -1239,15 +1255,6 @@ textarea {
   font-family: var(--font-body);
   font-size: 0.9rem;
   font-weight: 600;
-}
-
-.support-strip {
-  background: linear-gradient(180deg, rgba(255, 248, 238, 0.96), rgba(255, 255, 255, 0.94));
-  box-shadow: none;
-}
-
-.support-strip p {
-  max-width: 56ch;
 }
 
 .alternate-option-list {
@@ -1300,6 +1307,13 @@ textarea {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-soft);
+}
+
+.alternate-option-note {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-body);
 }
 
 .alternate-option-actions {
@@ -1391,6 +1405,17 @@ textarea {
   margin-top: 12px;
 }
 
+.practical-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.practical-toggle {
+  width: auto;
+}
+
 .practical-subsection {
   display: grid;
   gap: 10px;
@@ -1409,6 +1434,10 @@ textarea {
 
 .compare-secondary {
   width: auto;
+}
+
+.next-action-link {
+  text-decoration: none;
 }
 
 .practical-guide {
