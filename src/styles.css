@@ -1039,10 +1039,14 @@ textarea {
   padding: 6px 10px;
   border-color: var(--accent-line);
   color: var(--accent);
+  background: #ffffff;
 }
 
 .alternate-option-card .compare-toggle-small.is-active {
-  background: var(--accent-soft);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fffaf2;
+  box-shadow: 0 8px 18px rgba(180, 83, 9, 0.18);
 }
 
 .product-packshot-frame {
