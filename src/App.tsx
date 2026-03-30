@@ -158,7 +158,9 @@ const translationsBase = {
       basis: 'Matched for',
       alternates: 'Other suggestions',
       resultHeader: 'Best fit for your job',
+      resultIntro: 'Recommended for the job you described.',
       viewProduct: 'View product',
+      getProduct: 'Get this product',
       switchLabel: 'View this option',
       compareLabel: 'Compare',
       compareReady: 'Compare selected products',
@@ -166,6 +168,8 @@ const translationsBase = {
       compareHelper: 'See the most useful differences before you decide.',
       bestFit: 'Best for this job',
       alternateFit: 'When to choose this instead',
+      changeInputs: 'Change inputs',
+      inputRecap: 'Your selection',
       nextAction: 'Next step',
       nextActionCopy: 'Open the product page, share this recommendation, or compare it with another suitable option.',
       summaryLine: 'Selected for',
@@ -273,7 +277,9 @@ const translationsBase = {
       basis: 'किस आधार पर मिला',
       alternates: 'और क्या options हैं',
       resultHeader: 'इस काम के लिए सबसे सही product',
+      resultIntro: 'जिस काम का आपने चुनाव किया, उसके लिए यह सुझाव सबसे उपयोगी है।',
       viewProduct: 'product देखें',
+      getProduct: 'यह product देखें',
       switchLabel: 'यह option देखें',
       compareLabel: 'तुलना करें',
       compareReady: 'चुने हुए उत्पादों की तुलना करें',
@@ -281,6 +287,8 @@ const translationsBase = {
       compareHelper: 'फैसला करने से पहले सबसे ज़रूरी फर्क एक साथ देखिए।',
       bestFit: 'इस काम के लिए सबसे सही',
       alternateFit: 'यह कब चुनें',
+      changeInputs: 'चयन बदलें',
+      inputRecap: 'आपने क्या चुना',
       nextAction: 'अगला कदम',
       nextActionCopy: 'product पेज खोलें, इस सुझाव को साझा करें, या किसी दूसरे उपयुक्त option से तुलना करें।',
       summaryLine: 'चुना गया काम',
@@ -398,7 +406,9 @@ const translationsBase = {
       basis: 'Kaunse pair par aaya',
       alternates: 'Aur options',
       resultHeader: 'Aapke kaam ke liye sujhav',
+      resultIntro: 'Aapke select kiye hue kaam ke hisaab se yeh sabse useful recommendation hai.',
       viewProduct: 'Product dekhein',
+      getProduct: 'Yeh product dekhein',
       switchLabel: 'Yeh option dekhein',
       compareLabel: 'Compare',
       compareReady: 'Selected products compare karein',
@@ -406,6 +416,8 @@ const translationsBase = {
       compareHelper: 'Decision lene se pehle useful differences ek saath dekhein.',
       bestFit: 'Is kaam ke liye best fit',
       alternateFit: 'Yeh kab choose karein',
+      changeInputs: 'Selections badlo',
+      inputRecap: 'Aapne kya choose kiya',
       nextAction: 'Agla step',
       nextActionCopy: 'Product page kholo, recommendation share karo, ya doosre suitable option se compare karo.',
       summaryLine: 'Selected for',
@@ -447,11 +459,6 @@ const supportValues = {
   mumbai: '+91-22-69224600',
   email: 'customercare@astraladhesives.com',
 } as const
-
-function renderBasisParts(basisLabel: string) {
-  const parts = basisLabel.split('+').map((part) => part.trim()).filter(Boolean)
-  return parts
-}
 
 function needsSurfacePair(jobType: AdvisorAnswers['jobType']) {
   return Boolean(jobType && !['Drain Cleaning', 'Gasket Making and Sealing', 'Thread sealing'].includes(jobType))
@@ -537,16 +544,14 @@ function App() {
   const resultHeading =
     currentStep === 'result' && recommendation
       ? activeLanguage === 'hi'
-        ? 'आपके काम के लिए सुझाव तैयार है'
-        : 'Your recommendation is ready'
-      : currentStep === 'job-type'
-        ? t.heroTitle
-        : t.stepTitles[currentStep]
+        ? t.resultTitles.resultHeader
+        : t.resultTitles.resultHeader
+      : t.heroTitle
   const currentSubtitle =
     currentStep === 'job-type'
       ? t.heroText
       : currentStep === 'result'
-        ? recommendation?.heroNote ?? t.simpleRuleText
+        ? recommendation?.heroNote ?? t.resultTitles.resultIntro
         : languagePrompt
   const comparisonProducts = recommendationOptions.filter((item) => compareSelection.includes(item.id))
   const comparisonRows = recommendation ? buildComparisonRows(comparisonProducts, answers, activeLanguage) : []
@@ -763,11 +768,7 @@ function App() {
                 <div className="header-meta-row">
                   <p className="eyebrow">{t.appSub}</p>
                 <span className="step-counter">
-                  {currentStep === 'result'
-                    ? activeLanguage === 'hi'
-                      ? 'सिफारिश तैयार'
-                      : 'Recommendation ready'
-                    : `${t.stepCounter} ${currentStepNumber} ${t.of} ${totalInteractiveSteps}`}
+                  {`${t.stepCounter} ${currentStepNumber} ${t.of} ${totalInteractiveSteps}`}
                 </span>
               </div>
               <h2>{resultHeading}</h2>
@@ -973,46 +974,51 @@ function App() {
               <div className="result-panel">
                 <div className="result-hero">
                   <div className="result-hero-header">
-                    <div>
-                      <p className="eyebrow result-eyebrow">{t.recommendationEyebrow}</p>
-                      <h3 className="result-hero-heading">{recommendation.sourceLabel}</h3>
-                    </div>
-                    <span className={`confidence-pill confidence-${recommendation.confidence}`}>
-                      {t.confidence[recommendation.confidence]}
-                    </span>
+                    <p className="eyebrow result-eyebrow">{t.recommendationEyebrow}</p>
+                    <p className="result-hero-kicker">{t.resultTitles.resultIntro}</p>
                   </div>
                   <div className="result-hero-grid">
                     <div className="result-title-block">
                       <h4 className="result-product-name">{recommendation.product}</h4>
                       <p className="result-subtitle">{recommendation.productType}</p>
-                      {summaryItems.length > 0 ? (
-                        <div className="hero-summary-line">
-                          <span className="decision-label">{t.resultTitles.summaryLine}</span>
-                          <strong className="decision-value">{summaryItems.map((item) => item.value).join(' • ')}</strong>
-                        </div>
-                      ) : null}
                       <p className="hero-note">{recommendation.heroNote}</p>
-                      {recommendation.basisLabel ? (
-                        <div className="basis-tags basis-tags-hero">
-                          {renderBasisParts(recommendation.basisLabel).map((part) => (
-                            <span className="basis-tag" key={part}>{part}</span>
+                      <div className="decision-proof">
+                        <span className="decision-label">{t.resultTitles.source}</span>
+                        <ul className="proof-list proof-list-tight">
+                          {recommendation.why.slice(0, 3).map((item) => (
+                            <li key={item}>{item}</li>
                           ))}
+                        </ul>
+                      </div>
+                      <div className="result-primary-actions">
+                        {recommendation.pageUrl ? (
+                          <a className="result-link" href={recommendation.pageUrl} rel="noreferrer" target="_blank">
+                            {t.resultTitles.getProduct}
+                          </a>
+                        ) : (
+                          <a className="support-action support-action-primary" href={`tel:${supportValues.care.replace(/[^+\d]/g, '')}`}>
+                            {t.supportActions.call}
+                          </a>
+                        )}
+                        <div className="result-secondary-actions">
+                          {recommendationOptions.length > 1 ? (
+                            <button
+                              className={`compare-toggle compare-toggle-light ${showComparison ? 'is-active' : ''}`}
+                              onClick={() => setShowComparison((current) => !current)}
+                              type="button"
+                            >
+                              {showComparison ? t.resultTitles.compareTitle : t.resultTitles.compareReady}
+                            </button>
+                          ) : null}
+                          <button
+                            className="ghost-button compact-action"
+                            onClick={() => setCurrentStep('job-type')}
+                            type="button"
+                          >
+                            {t.resultTitles.changeInputs}
+                          </button>
                         </div>
-                      ) : null}
-                      {recommendation.pageUrl ? (
-                        <a className="result-link" href={recommendation.pageUrl} rel="noreferrer" target="_blank">
-                          {t.resultTitles.viewProduct}
-                        </a>
-                      ) : null}
-                      {recommendationOptions.length > 1 ? (
-                        <button
-                          className="compare-toggle"
-                          onClick={() => setShowComparison((current) => !current)}
-                          type="button"
-                        >
-                          {showComparison ? t.resultTitles.switchLabel : t.resultTitles.compareLabel}
-                        </button>
-                      ) : null}
+                      </div>
                     </div>
                     {recommendation.imageUrl ? (
                       <div className="product-packshot-frame">
@@ -1025,17 +1031,6 @@ function App() {
                     ) : null}
                   </div>
                 </div>
-
-                <section className="result-section">
-                  <h4>{t.resultTitles.source}</h4>
-                  <div className="decision-proof">
-                    <ul className="proof-list">
-                      {recommendation.why.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </section>
 
                 {!isFallbackRecommendation && recommendation.alternateProducts.length > 0 && (
                   <section className="result-section">
@@ -1051,13 +1046,11 @@ function App() {
                           >
                             <div className="alternate-option-copy">
                               <span className="alternate-option-name">{item.product}</span>
-                              <span className="alternate-option-reason">{item.heroNote}</span>
                               {item.alternateReason ? (
-                                <span className="alternate-option-context">{t.resultTitles.alternateFit}</span>
-                              ) : null}
-                              {item.alternateReason ? (
-                                <span className="alternate-option-note">{item.alternateReason}</span>
-                              ) : null}
+                                <span className="alternate-option-reason">{item.alternateReason}</span>
+                              ) : (
+                                <span className="alternate-option-reason">{item.heroNote}</span>
+                              )}
                             </div>
                             <div className="alternate-option-actions">
                               <button
@@ -1078,15 +1071,6 @@ function App() {
                           </div>
                         ))}
                     </div>
-                    {compareSelection.length >= 2 && !showComparison ? (
-                      <button
-                        className="ghost-button compare-launch"
-                        onClick={() => setShowComparison(true)}
-                        type="button"
-                      >
-                        {t.resultTitles.compareReady}
-                      </button>
-                    ) : null}
                   </section>
                 )}
 
@@ -1123,18 +1107,17 @@ function App() {
 
                 <section className="result-section next-action-section">
                   <h4>{t.resultTitles.nextAction}</h4>
-                  <p className="result-section-copy">{t.resultTitles.nextActionCopy}</p>
                   <div className="next-action-row">
                     <a className="ghost-button next-action-link" href={shareUrl} rel="noreferrer" target="_blank">
                       {t.supportActions.share}
                     </a>
                     {isFallbackRecommendation ? (
-                      <a className="support-action" href={`tel:${supportValues.care.replace(/[^+\d]/g, '')}`}>
+                      <a className="support-action support-action-primary" href={`tel:${supportValues.care.replace(/[^+\d]/g, '')}`}>
                         {t.supportActions.call}
                       </a>
-                    ) : compareSelection.length >= 2 ? (
-                      <button className="ghost-button compare-secondary" onClick={() => setShowComparison(true)} type="button">
-                        {t.resultTitles.compareReady}
+                    ) : showComparison ? (
+                      <button className="ghost-button compare-secondary" onClick={() => setShowComparison(false)} type="button">
+                        {t.resultTitles.changeInputs}
                       </button>
                     ) : null}
                   </div>
@@ -1148,10 +1131,10 @@ function App() {
             <h3>{t.summaryTitle}</h3>
 
             {summaryItems.length > 0 ? (
-              <div className="summary-chip-list summary-chip-list-structured">
+              <div className="summary-recap-list">
                 {summaryItems.map((item) => (
                   <button
-                    className={`summary-chip ${currentStep === 'result' ? 'is-link' : ''}`}
+                    className={`summary-recap-item ${currentStep === 'result' ? 'is-link' : ''}`}
                     key={item.label}
                     onClick={() => {
                       if (currentStep === 'result') {
@@ -1161,8 +1144,8 @@ function App() {
                     }}
                     type="button"
                   >
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
+                    <span className="summary-recap-label">{item.label}</span>
+                    <strong className="summary-recap-value">{item.value}</strong>
                   </button>
                 ))}
               </div>
