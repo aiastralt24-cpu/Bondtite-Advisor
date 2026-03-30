@@ -1,4 +1,4 @@
-import { categoryMatrix } from './categoryMatrix'
+import { categoryMatrix, type CategoryMatrixRow } from './categoryMatrix'
 import { productCatalog, type AppLanguage, type ProductProfile } from './productCatalog'
 
 export type { AppLanguage } from './productCatalog'
@@ -79,6 +79,8 @@ export type DetectedSignal = {
 }
 
 type LocalizedText = Record<AppLanguage, string>
+
+type SurfaceStep = 'surface-a' | 'surface-b'
 
 const matrixApplications = [
   'Bonding',
@@ -642,11 +644,26 @@ function requiresPriority(jobType: JobType | null) {
   return jobType === 'Bonding'
 }
 
-function findMatrixRow(jobType: JobType, surfaceA: string | null, surfaceB: string | null) {
-  const surfaceARaw = surfaceA ? surfaceIdToDefinition[surfaceA]?.matrix[0] ?? null : null
-  const surfaceBRaw = surfaceB ? surfaceIdToDefinition[surfaceB]?.matrix[0] ?? null : null
+function normalizeMatrixValue(value: string | null | undefined) {
+  return value?.trim() ?? null
+}
 
-  return categoryMatrix.find((row) => {
+function normalizeMatrixRow(row: CategoryMatrixRow) {
+  return {
+    ...row,
+    application: row.application.trim(),
+    surfaceA: normalizeMatrixValue(row.surfaceA),
+    surfaceB: normalizeMatrixValue(row.surfaceB),
+  }
+}
+
+const normalizedCategoryMatrix = categoryMatrix.map(normalizeMatrixRow)
+
+function findMatrixRow(jobType: JobType, surfaceA: string | null, surfaceB: string | null) {
+  const surfaceARaw = surfaceA ? normalizeMatrixValue(surfaceIdToDefinition[surfaceA]?.matrix[0]) : null
+  const surfaceBRaw = surfaceB ? normalizeMatrixValue(surfaceIdToDefinition[surfaceB]?.matrix[0]) : null
+
+  return normalizedCategoryMatrix.find((row) => {
     if (row.application !== jobType) return false
     if (!requiresSurfacePair(jobType)) return !row.surfaceA && !row.surfaceB
     if (!surfaceARaw || !surfaceBRaw) return false
@@ -760,6 +777,53 @@ export function getSurfaceOptions(language: AppLanguage): LocalizedOption[] {
     id: surface.id,
     label: surface.label[language],
   }))
+}
+
+function getSurfaceIdFromMatrixValue(value: string | null) {
+  if (!value) return null
+  const normalizedValue = normalizeMatrixValue(value)
+  return surfaceDefinitions.find((surface) =>
+    surface.matrix.some((matrixValue) => normalizeMatrixValue(matrixValue) === normalizedValue),
+  )?.id ?? null
+}
+
+export function getSurfaceOptionsForStep(
+  language: AppLanguage,
+  answers: AdvisorAnswers,
+  step: SurfaceStep,
+): LocalizedOption[] {
+  if (!answers.jobType || !requiresSurfacePair(answers.jobType)) return []
+
+  const relevantRows = normalizedCategoryMatrix.filter((row) => row.application === answers.jobType)
+  const availableSurfaceIds = new Set<string>()
+
+  if (step === 'surface-a') {
+    relevantRows.forEach((row) => {
+      const surfaceAId = getSurfaceIdFromMatrixValue(row.surfaceA)
+      const surfaceBId = getSurfaceIdFromMatrixValue(row.surfaceB)
+      if (surfaceAId) availableSurfaceIds.add(surfaceAId)
+      if (surfaceBId) availableSurfaceIds.add(surfaceBId)
+    })
+  } else if (answers.surfaceA) {
+    const selectedMatrixValue = normalizeMatrixValue(surfaceIdToDefinition[answers.surfaceA]?.matrix[0])
+    relevantRows.forEach((row) => {
+      if (row.surfaceA === selectedMatrixValue && row.surfaceB) {
+        const surfaceId = getSurfaceIdFromMatrixValue(row.surfaceB)
+        if (surfaceId) availableSurfaceIds.add(surfaceId)
+      }
+      if (row.surfaceB === selectedMatrixValue && row.surfaceA) {
+        const surfaceId = getSurfaceIdFromMatrixValue(row.surfaceA)
+        if (surfaceId) availableSurfaceIds.add(surfaceId)
+      }
+    })
+  }
+
+  return surfaceDefinitions
+    .filter((surface) => availableSurfaceIds.has(surface.id))
+    .map((surface) => ({
+      id: surface.id,
+      label: surface.label[language],
+    }))
 }
 
 export function getApplicationAreaOptions(language: AppLanguage): LocalizedOption[] {

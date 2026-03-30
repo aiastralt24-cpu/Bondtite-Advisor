@@ -9,6 +9,7 @@ import {
   getJobShortcuts,
   getNextMissingStep,
   getRecommendationOptions,
+  getSurfaceOptionsForStep,
   getSurfaceOptions,
   parseJobInput,
   type AppLanguage,
@@ -482,6 +483,8 @@ function App() {
   const t = translations[activeLanguage]
   const jobTypeOptions = useMemo(() => getJobTypeOptions(activeLanguage), [activeLanguage])
   const surfaceOptions = useMemo(() => getSurfaceOptions(activeLanguage), [activeLanguage])
+  const surfaceAOptions = useMemo(() => getSurfaceOptionsForStep(activeLanguage, answers, 'surface-a'), [activeLanguage, answers])
+  const surfaceBOptions = useMemo(() => getSurfaceOptionsForStep(activeLanguage, answers, 'surface-b'), [activeLanguage, answers])
   const applicationAreaOptions = useMemo(() => getApplicationAreaOptions(activeLanguage), [activeLanguage])
   const bondStrengthOptions = useMemo(() => getBondStrengthOptions(activeLanguage), [activeLanguage])
   const jobShortcuts = useMemo(() => getJobShortcuts(activeLanguage), [activeLanguage])
@@ -578,6 +581,25 @@ function App() {
       setVoiceStatus(translations[activeLanguage].voiceReady)
     }
   }, [activeLanguage, language])
+
+  useEffect(() => {
+    if (!answers.jobType) return
+
+    const validSurfaceAIds = new Set(surfaceAOptions.map((item) => item.id))
+    const validSurfaceBIds = new Set(surfaceBOptions.map((item) => item.id))
+
+    if ((answers.surfaceA && !validSurfaceAIds.has(answers.surfaceA)) || (answers.surfaceB && !validSurfaceBIds.has(answers.surfaceB))) {
+      const nextAnswers = {
+        ...answers,
+        surfaceA: answers.surfaceA && validSurfaceAIds.has(answers.surfaceA) ? answers.surfaceA : null,
+        surfaceB: answers.surfaceB && validSurfaceBIds.has(answers.surfaceB) ? answers.surfaceB : null,
+      }
+      setAnswers(nextAnswers)
+      if (currentStep === 'result') {
+        setCurrentStep(getNextMissingStep(nextAnswers))
+      }
+    }
+  }, [answers, currentStep, surfaceAOptions, surfaceBOptions])
 
   useEffect(() => {
     if (recommendationOptions.length === 0) {
@@ -892,25 +914,25 @@ function App() {
             ) : null}
 
             {currentStep === 'surface-a' && (
-              <OptionGrid
-                options={surfaceOptions}
-                value={answers.surfaceA}
-                onSelect={(id) => {
-                  const nextAnswers = { ...answers, surfaceA: id }
-                  setAnswers(nextAnswers)
-                  setLastParsed(null)
-                  setCurrentStep(getNextMissingStep(nextAnswers))
+                <OptionGrid
+                  options={surfaceAOptions}
+                  value={answers.surfaceA}
+                  onSelect={(id) => {
+                    const nextAnswers = { ...answers, surfaceA: id, surfaceB: null }
+                    setAnswers(nextAnswers)
+                    setLastParsed(null)
+                    setCurrentStep(getNextMissingStep(nextAnswers))
                   setLanguagePrompt(getFollowUpPrompt(nextAnswers, activeLanguage))
                 }}
               />
             )}
 
             {currentStep === 'surface-b' && (
-              <OptionGrid
-                options={surfaceOptions}
-                value={answers.surfaceB}
-                onSelect={(id) => {
-                  const nextAnswers = { ...answers, surfaceB: id }
+                <OptionGrid
+                  options={surfaceBOptions}
+                  value={answers.surfaceB}
+                  onSelect={(id) => {
+                    const nextAnswers = { ...answers, surfaceB: id }
                   setAnswers(nextAnswers)
                   setLastParsed(null)
                   setCurrentStep(getNextMissingStep(nextAnswers))
