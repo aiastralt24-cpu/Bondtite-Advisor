@@ -150,20 +150,20 @@ function byFamily(product: string) {
     return {
       productType: makeLocalized('Wood adhesive', 'वुड adhesive', 'Wood adhesive'),
       heroNote: makeLocalized(
-        `${product} wood, board, plywood, and laminate side ke kaam ke liye zyada relevant hota hai.`,
-        `${product} लकड़ी, बोर्ड, प्लाईवुड और laminate side वाले काम के लिए ज्यादा relevant होता है।`,
+        `${product} is best suited to wood, board, plywood, and laminate work.`,
+        `${product} लकड़ी, बोर्ड, प्लाईवुड और लैमिनेट वाले काम के लिए बेहतर रहता है।`,
         `${product} lakdi, board, plywood aur laminate side wale kaam ke liye zyada relevant hota hai.`,
       ),
       why: makeBullets(
         [
           'Suited to woodworking and panel-based jobs.',
           'Works better when the surface pair includes porous sheet materials.',
-          'Useful when the category team has already mapped this pair to a wood-focused product.',
+          'Best suited when the selected job is centered on wood, board, or laminate work.',
         ],
         [
-          'वुडवर्किंग और panel-based काम में यह ज्यादा fit बैठता है।',
-          'जब pair में porous sheet material हो, तब यह ज्यादा useful होता है।',
-          'जहां category team ने इसी pair पर wood-focused product map किया है, वहां इसे प्राथमिकता दी जाती है।',
+          'वुडवर्क और पैनल वाले काम में यह अच्छा मेल बैठता है।',
+          'जब चुनी हुई सतहों में लकड़ी, बोर्ड या लैमिनेट हो, तब यह ज्यादा उपयोगी रहता है।',
+          'ऐसे काम में इसे पहली पसंद माना जा सकता है।',
         ],
       ),
       howToApply: makeBullets(
@@ -211,20 +211,20 @@ function byFamily(product: string) {
     return {
       productType: makeLocalized('Repair and hard-surface adhesive', 'हार्ड-surface adhesive', 'Hard-surface adhesive'),
       heroNote: makeLocalized(
-        `${product} glass, acrylic, metal, tile, stone, aur mixed hard-surface fixing ke liye zyada use hota hai.`,
-        `${product} glass, acrylic, metal, tile, stone और mixed hard-surface fixing के लिए ज्यादा use होता है।`,
+        `${product} is a strong fit for glass, acrylic, metal, tile, stone, and mixed hard-surface fixing.`,
+        `${product} glass, acrylic, metal, tile, stone और mixed hard-surface fixing के लिए अच्छा विकल्प है।`,
         `${product} glass, acrylic, metal, tile, stone aur mixed hard-surface fixing ke liye zyada use hota hai.`,
       ),
       why: makeBullets(
         [
           'Fits repair and fixing jobs across hard surfaces.',
           'Useful where a cleaner, more controlled bond is needed.',
-          'Commonly used when the category mapping points to non-porous or mixed surfaces.',
+          'Works better where the job involves hard or mixed surfaces.',
         ],
         [
-          'Hard surface repair और fixing काम में यह अच्छा fit होता है।',
-          'जहां controlled और cleaner bond चाहिए, वहां यह ज्यादा सही रहता है।',
-          'जब category mapping non-porous या mixed surface दिखाती है, तब यह common choice होती है।',
+          'हार्ड सतहों की मरम्मत और फिक्सिंग में यह अच्छा मेल देता है।',
+          'जहाँ साफ़ और नियंत्रित जोड़ चाहिए, वहाँ यह बेहतर रहता है।',
+          'मिश्रित या सख्त सतहों वाले काम में इसे चुना जा सकता है।',
         ],
       ),
       howToApply: makeBullets(
@@ -272,20 +272,20 @@ function byFamily(product: string) {
     return {
       productType: makeLocalized('Contact adhesive', 'कॉन्टैक्ट adhesive', 'Contact adhesive'),
       heroNote: makeLocalized(
-        `${product} foam, laminate, rexine, louvers, aur sheet pasting jaisi fast site jobs ke liye useful hota hai.`,
-        `${product} foam, laminate, rexine, louvers और sheet pasting जैसी fast site jobs के लिए useful होता है।`,
+        `${product} works well for foam, laminate, rexine, louvers, and quick sheet pasting jobs.`,
+        `${product} foam, laminate, rexine, louvers और तेज sheet pasting वाले काम में उपयोगी है।`,
         `${product} foam, laminate, rexine, louvers aur sheet pasting jaisi fast site jobs ke liye useful hota hai.`,
       ),
       why: makeBullets(
         [
           'Useful in sheet bonding and quick site fitting jobs.',
           'A good fit where large contact areas need even adhesion.',
-          'Often used when the category team suggests a contact-adhesive route.',
+          'Works well when the job needs a faster sheet-bonding approach.',
         ],
         [
-          'Sheet bonding और quick site fitting jobs में useful है।',
-          'जहां large contact area पर even adhesion चाहिए, वहां यह अच्छा fit है।',
-          'जब category team contact-adhesive route suggest करती है, तब यह common product है।',
+          'शीट बॉन्डिंग और तेज साइट फिक्सिंग में यह उपयोगी है।',
+          'जहाँ बड़े संपर्क क्षेत्र पर एकसमान पकड़ चाहिए, वहाँ यह अच्छा रहता है।',
+          'तेज़ शीट-आधारित काम में इसे चुना जा सकता है।',
         ],
       ),
       howToApply: makeBullets(
@@ -333,20 +333,20 @@ function byFamily(product: string) {
     return {
       productType: makeLocalized('Pipe joint solvent cement', 'पाइप joint cement', 'Pipe joint cement'),
       heroNote: makeLocalized(
-        `${product} PVC, uPVC, aur CPVC socket joining ke liye category sheet mein aata hai.`,
-        `${product} PVC, uPVC और CPVC socket joining के लिए category sheet में आता है।`,
+        `${product} is made for PVC, uPVC, and CPVC socket joining jobs.`,
+        `${product} PVC, uPVC और CPVC socket joining के काम के लिए बनाया गया है।`,
         `${product} PVC, uPVC aur CPVC socket joining ke liye category sheet mein aata hai.`,
       ),
       why: makeBullets(
         [
           'Made for pipe and socket joining work.',
           'Useful where leak-proof fitting matters more than decorative finish.',
-          'The category team maps it to plumbing-style substrate pairs.',
+          'Best suited for pipe-joint work rather than furniture-style bonding.',
         ],
         [
-          'Pipe और socket joining work के लिए बनाया गया है।',
-          'जहां leak-proof fitting ज्यादा जरूरी हो, वहां यह useful रहता है।',
-          'Category team इसे plumbing-type substrate pairs पर map करती है।',
+          'यह पाइप और सॉकेट जोड़ने के काम के लिए बना है।',
+          'जहाँ लीकेज-रहित फिटिंग ज़्यादा जरूरी हो, वहाँ यह बेहतर रहता है।',
+          'फर्नीचर-जैसे बॉन्डिंग काम के बजाय पाइप-जॉइंट काम में इसे चुनें।',
         ],
       ),
       howToApply: makeBullets(
@@ -394,20 +394,20 @@ function byFamily(product: string) {
     return {
       productType: makeLocalized('Special application product', 'स्पेशल application product', 'Special application product'),
       heroNote: makeLocalized(
-        `${product} bonding ke normal use se alag ek specific maintenance ya sealing application ke liye aata hai.`,
-        `${product} bonding के normal use से अलग एक specific maintenance या sealing application के लिए आता है।`,
+        `${product} is meant for a specific maintenance or sealing application rather than general bonding.`,
+        `${product} सामान्य bonding के बजाय एक खास maintenance या sealing काम के लिए बना है।`,
         `${product} bonding ke normal use se alag ek specific maintenance ya sealing application ke liye aata hai.`,
       ),
       why: makeBullets(
         [
           'This is used in a more specific technical application.',
-          'The category team maps it by function rather than furniture-style substrate bonding.',
+          'It is chosen by application need, not by a general surface-pair job.',
           'Correct use case confirmation matters more here than generic adhesive selection.',
         ],
         [
-          'यह एक specific technical application में use होता है।',
-          'Category team इसे furniture-style bonding के बजाय function के आधार पर map करती है।',
-          'यहां generic adhesive selection से ज्यादा सही use case confirmation जरूरी है।',
+          'यह एक खास तकनीकी काम में उपयोग होता है।',
+          'इसे सामान्य सतह-जोड़ काम की तरह नहीं, बल्कि उसके काम के आधार पर चुना जाता है।',
+          'यहाँ साधारण adhesive चुनने से ज्यादा सही उपयोग की पुष्टि जरूरी है।',
         ],
       ),
       howToApply: makeBullets(
@@ -454,13 +454,13 @@ function byFamily(product: string) {
   return {
     productType: makeLocalized('Adhesive recommendation', 'adhesive recommendation', 'adhesive recommendation'),
     heroNote: makeLocalized(
-      `${product} category team ki mapping ke hisaab se is job ke liye aaya hai.`,
-      `${product} category team की mapping के हिसाब से इस काम के लिए आया है।`,
+      `${product} is a relevant option for the selected job.`,
+      `${product} चुने हुए काम के लिए एक उपयुक्त विकल्प है।`,
       `${product} category team ki mapping ke hisaab se is kaam ke liye aaya hai.`,
     ),
     why: makeBullets(
-      ['This product appears in the category mapping for the selected job.', 'Use-case confirmation still matters for unusual surface condition.'],
-      ['यह product selected job की category mapping में आता है।', 'Unusual surface condition में use-case confirmation फिर भी जरूरी है।'],
+      ['This product is relevant for the selected job.', 'Use-case confirmation still matters for unusual surface condition.'],
+      ['यह उत्पाद चुने हुए काम के लिए उपयुक्त हो सकता है।', 'अगर सतह असामान्य हो तो उपयोग से पहले पुष्टि करना ज़रूरी है।'],
     ),
     howToApply: makeBullets(
       ['Clean the surface well.', 'Apply only after confirming the exact fit for the job.'],

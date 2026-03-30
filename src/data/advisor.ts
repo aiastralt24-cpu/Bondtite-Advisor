@@ -45,6 +45,11 @@ export type Recommendation = {
   alternateProducts: string[]
 }
 
+export type RecommendationComparisonRow = {
+  label: string
+  values: string[]
+}
+
 export type ParseResult = {
   answers: AdvisorAnswers
   missingStep: StepKey
@@ -476,15 +481,15 @@ const shortcutCatalog = [
 
 const fallbackRecommendationText = {
   sourceLabel: {
-    en: 'Support check recommended',
-    hi: 'पहले support से confirm करें',
+    en: 'Confirm with Bondtite support',
+    hi: 'Bondtite support से पुष्टि करें',
     hinglish: 'Support se confirm karein',
     gu: 'પહેલાં support થી confirm કરો',
     rj: 'Support se confirm karo',
   },
   basis: {
-    en: 'No clear category-sheet match yet',
-    hi: 'अभी साफ category-sheet match नहीं मिला',
+    en: 'No safe direct match yet',
+    hi: 'अभी सुरक्षित सीधा मिलान नहीं मिला',
     hinglish: 'Abhi clear category-sheet match nahi mila',
     gu: 'હજુ clear category-sheet match મળ્યો નથી',
     rj: 'Abhi clear category-sheet match ni milyo',
@@ -492,8 +497,8 @@ const fallbackRecommendationText = {
 }
 
 const sourceLabelText = {
-  en: 'Suggested by Category Team',
-  hi: 'Suggested by Category Team',
+  en: 'Matched to your selected job',
+  hi: 'आपके चुने हुए काम के आधार पर चुना गया',
   hinglish: 'Suggested by Category Team',
   gu: 'Suggested by Category Team',
   rj: 'Suggested by Category Team',
@@ -676,7 +681,7 @@ function getFallbackRecommendation(language: AppLanguage): Recommendation {
     productType: language === 'hi' ? 'सुरक्षित अगला कदम' : 'Safer next step',
     heroNote:
       language === 'hi'
-        ? 'इस काम के लिए category sheet से सीधा match नहीं मिला। गलत product बताने से बेहतर है पहले support से confirm करना।'
+        ? 'इस काम के लिए अभी सुरक्षित सीधा मिलान नहीं मिला। गलत product बताने से बेहतर है पहले support से पुष्टि करना।'
         : language === 'hinglish'
           ? 'Is kaam ke liye category sheet se seedha match nahi mila. Galat product batane se better hai pehle support se confirm karna.'
           : language === 'gu'
@@ -687,9 +692,9 @@ function getFallbackRecommendation(language: AppLanguage): Recommendation {
     why:
       language === 'hi'
         ? [
-            'काम clear नहीं हुआ या sheet में सीधा pair नहीं मिला।',
-            'गलत adhesive बताना risk वाला होगा।',
-            'एक quick support check सही दिशा देगा।',
+            'काम पूरी तरह साफ नहीं हुआ या सीधा मिलान नहीं मिला।',
+            'गलत adhesive बताना जोखिम वाला होगा।',
+            'एक बार support से पुष्टि करने पर सही दिशा मिल जाएगी।',
           ]
         : [
             'The job is still unclear or the exact pair is not mapped cleanly.',
@@ -698,13 +703,13 @@ function getFallbackRecommendation(language: AppLanguage): Recommendation {
           ],
     howToApply:
       language === 'hi'
-        ? ['दोनों surfaces की photo ready रखें।', 'काम indoor, wet area, या outdoor है यह बताएं।', 'Support को job line उसी language में बताएं जिसमें आप comfortable हैं।']
+        ? ['दोनों surfaces की एक फोटो तैयार रखें।', 'बताइए कि काम indoor, wet area या outdoor है।', 'Support को वही job line बताइए जिसमें आप सहज हों।']
         : ['Keep one photo of both surfaces ready.', 'Tell support whether this is indoor, wet-area, or outside work.', 'Describe the job in the language you are comfortable with.'],
-    waitTime: language === 'hi' ? 'Support से सही product confirm होने तक रुके रहें।' : 'Wait until support confirms the right product.',
-    clampNeed: language === 'hi' ? 'Confirm हुए बिना apply न करें।' : 'Do not apply until the job is confirmed.',
-    surfaceWarning: language === 'hi' ? 'अगर surface coated, oily, painted, cracked, या unusual हो तो support check जरूरी है।' : 'If the surface is coated, oily, painted, cracked, or unusual, support confirmation matters.',
+    waitTime: language === 'hi' ? 'Support से सही product की पुष्टि होने तक रुकें।' : 'Wait until support confirms the right product.',
+    clampNeed: language === 'hi' ? 'पुष्टि हुए बिना apply न करें।' : 'Do not apply until the job is confirmed.',
+    surfaceWarning: language === 'hi' ? 'अगर surface coated, oily, painted, cracked या unusual हो, तो support check ज़रूरी है।' : 'If the surface is coated, oily, painted, cracked, or unusual, support confirmation matters.',
     avoid: language === 'hi' ? ['अंदाज़े से product मत चुनिए।', 'अधूरी जानकारी पर काम शुरू मत कीजिए।'] : ['Do not choose by guesswork.', 'Do not start the job on partial information.'],
-    supportNote: language === 'hi' ? 'Customer care या Mumbai office पर बात करके जल्दी confirm कर लीजिए।' : 'Please confirm once with support before buying or applying.',
+    supportNote: language === 'hi' ? 'खरीदने या लगाने से पहले support से एक बार पुष्टि कर लें।' : 'Please confirm once with support before buying or applying.',
     confidence: 'medium',
     sourceLabel: fallbackRecommendationText.sourceLabel[language],
     basisLabel: fallbackRecommendationText.basis[language],
@@ -779,23 +784,35 @@ export function getJobShortcuts(language: AppLanguage): JobShortcut[] {
 }
 
 export function getRecommendation(answers: AdvisorAnswers, language: AppLanguage): Recommendation | null {
-  if (!answers.jobType) return null
-  if (getNextMissingStep(answers) !== 'result') return null
+  const options = getRecommendationOptions(answers, language)
+  return options[0] ?? null
+}
+
+export function getRecommendationOptions(answers: AdvisorAnswers, language: AppLanguage): Recommendation[] {
+  if (!answers.jobType) return []
+  if (getNextMissingStep(answers) !== 'result') return []
 
   const row = findMatrixRow(answers.jobType, answers.surfaceA, answers.surfaceB)
-  if (!row) return getFallbackRecommendation(language)
+  if (!row) return [getFallbackRecommendation(language)]
 
   const candidates = row.products.filter((product) => productCatalog[product])
-  if (candidates.length === 0) return getFallbackRecommendation(language)
+  if (candidates.length === 0) return [getFallbackRecommendation(language)]
 
-  const primary = productCatalog[candidates[0]]
-  const alternateProducts = candidates.slice(1, 4)
   const basisLabel =
     row.surfaceA && row.surfaceB
       ? `${row.surfaceA} + ${row.surfaceB}`
       : jobTypeLabels[answers.jobType][language]
-
-  return profileToRecommendation(primary, language, basisLabel, alternateProducts)
+  return candidates.slice(0, 4).map((productName, index) =>
+    profileToRecommendation(
+      productCatalog[productName],
+      language,
+      basisLabel,
+      candidates.filter((candidate) => candidate !== productName).slice(0, 3),
+    ),
+  ).map((recommendation, index) => ({
+    ...recommendation,
+    confidence: index === 0 ? recommendation.confidence : 'medium',
+  }))
 }
 
 export function getLocalizedAnswerSummary(answers: AdvisorAnswers, language: AppLanguage) {
@@ -806,6 +823,59 @@ export function getLocalizedAnswerSummary(answers: AdvisorAnswers, language: App
     applicationArea: answers.applicationArea ? getLocalizedAreaLabel(answers.applicationArea, language) : null,
     bondStrength: answers.bondStrength ? getLocalizedPriorityLabel(answers.bondStrength, language) : null,
   }
+}
+
+export function buildComparisonRows(
+  recommendations: Recommendation[],
+  answers: AdvisorAnswers,
+  language: AppLanguage,
+): RecommendationComparisonRow[] {
+  const summary = getLocalizedAnswerSummary(answers, language)
+  const useCase = [
+    summary.jobType,
+    summary.surfaceA,
+    summary.surfaceB,
+    summary.applicationArea,
+  ].filter(Boolean).join(' • ')
+
+  return [
+    {
+      label: language === 'hi' ? 'उत्पाद' : 'Product',
+      values: recommendations.map((item) => item.product),
+    },
+    {
+      label: language === 'hi' ? 'प्रकार' : 'Type',
+      values: recommendations.map((item) => item.productType),
+    },
+    {
+      label: language === 'hi' ? 'किस काम के लिए' : 'Best for',
+      values: recommendations.map((item) => item.heroNote),
+    },
+    {
+      label: language === 'hi' ? 'आपके काम से मेल' : 'Fit for your job',
+      values: recommendations.map(() => useCase || (language === 'hi' ? 'चयनित काम' : 'Selected job')),
+    },
+    {
+      label: language === 'hi' ? 'सेट होने का समय' : 'Setting time',
+      values: recommendations.map((item) => item.waitTime),
+    },
+    {
+      label: language === 'hi' ? 'Clamp / दबाव' : 'Clamp need',
+      values: recommendations.map((item) => item.clampNeed),
+    },
+    {
+      label: language === 'hi' ? 'तैयारी' : 'Preparation',
+      values: recommendations.map((item) => item.howToApply[0] ?? (language === 'hi' ? 'पैक निर्देश देखें' : 'Check pack direction')),
+    },
+    {
+      label: language === 'hi' ? 'सावधानी' : 'Caution',
+      values: recommendations.map((item) => item.surfaceWarning),
+    },
+    {
+      label: language === 'hi' ? 'कब चुनें' : 'Choose this instead',
+      values: recommendations.map((item) => item.why[1] ?? item.supportNote),
+    },
+  ]
 }
 
 export function getNextMissingStep(answers: AdvisorAnswers): StepKey {

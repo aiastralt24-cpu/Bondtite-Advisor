@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  buildComparisonRows,
   getApplicationAreaOptions,
   getBondStrengthOptions,
   getDetectedSignals,
@@ -7,13 +8,14 @@ import {
   getJobTypeOptions,
   getJobShortcuts,
   getNextMissingStep,
-  getRecommendation,
+  getRecommendationOptions,
   getSurfaceOptions,
   parseJobInput,
   type AppLanguage,
   type AdvisorAnswers,
   type LocalizedOption,
   type ParseResult,
+  type Recommendation,
   type StepKey,
 } from './data/advisor'
 
@@ -155,6 +157,15 @@ const translationsBase = {
       alternates: 'Other suggestions',
       resultHeader: 'Recommended product',
       viewProduct: 'View product',
+      switchLabel: 'View this option',
+      compareLabel: 'Compare',
+      compareReady: 'Compare selected products',
+      compareTitle: 'Compare suggested products',
+      compareHelper: 'See the most useful differences before you decide.',
+      bestFit: 'Best for this job',
+      alternateFit: 'When to choose this instead',
+      nextAction: 'Next step',
+      nextActionCopy: 'Review this option, compare it, or talk to support if the job still needs confirmation.',
       why: 'Why this fits',
       apply: 'How to apply',
       practical: 'Practical use guide',
@@ -170,10 +181,10 @@ const translationsBase = {
     appSub: 'Dr. Bondtite',
     heroTitle: 'सही Bondtite चुनिए.',
     heroText:
-      'काम को आसान भाषा में बताइए और advisor बिना technical confusion के सही दिशा देगा।',
+      'काम को आसान भाषा में बताइए और advisor बिना उलझन के सही दिशा देगा।',
     languageGateEyebrow: 'भाषा चुनें',
     languageGateTitle: 'आप किस भाषा में बात करना चाहते हैं?',
-    languageGateText: 'एक भाषा चुनिए। उसके बाद सवाल, मार्गदर्शन और recommendation सब उसी भाषा में होंगे।',
+    languageGateText: 'एक भाषा चुनिए। उसके बाद सवाल, मार्गदर्शन और पूरा सुझाव उसी भाषा में होगा।',
     languages: {
       en: 'English',
       hi: 'हिंदी',
@@ -194,7 +205,7 @@ const translationsBase = {
       'मुझे जल्दी पकड़ चाहिए',
     ],
     heroGlance: [
-      ['कैसे काम करता है', 'एक बार में एक सवाल। बिना product confusion.'],
+      ['कैसे काम करता है', 'एक बार में एक सवाल। बिना product confusion के।'],
       ['भाषा', 'आप जो भाषा चुनेंगे, tool उसी में रहेगा।'],
       ['अगर doubt हो', 'Support details तुरंत मिल जाएँगी।'],
     ],
@@ -215,7 +226,7 @@ const translationsBase = {
     inputButton: 'सही product खोजें',
     voiceButton: 'बोलकर बताइए',
     voiceListening: 'सुन रहा हूँ...',
-    voiceUnsupported: 'इस browser में voice input नहीं चल रहा है। आप लिखकर बता सकते हैं।',
+    voiceUnsupported: 'इस browser में voice input उपलब्ध नहीं है। आप लिखकर बता सकते हैं।',
     voiceError: 'आवाज़ साफ़ नहीं समझ आई। एक बार फिर बोलिए या लिखिए।',
     voiceReady: 'आप चुनी हुई भाषा में बोल सकते हैं। मैं उसे लिख दूँगा।',
     emptyPrompt: 'एक लाइन में बताइए कि आपको क्या जोड़ना है। मैं वहीं से आगे बढ़ाऊँगा।',
@@ -249,7 +260,7 @@ const translationsBase = {
     recommendationEyebrow: 'Suggested Bondtite',
     confidence: {
       high: 'साफ़ match',
-      medium: 'एक बार support से confirm करें',
+      medium: 'एक बार support से पुष्टि करें',
       low: 'थोड़ी और जानकारी चाहिए',
     },
     resultTitles: {
@@ -258,6 +269,15 @@ const translationsBase = {
       alternates: 'और क्या options हैं',
       resultHeader: 'सुझाया गया product',
       viewProduct: 'product देखें',
+      switchLabel: 'यह option देखें',
+      compareLabel: 'तुलना करें',
+      compareReady: 'चुने हुए उत्पादों की तुलना करें',
+      compareTitle: 'सुझाए गए उत्पादों की तुलना',
+      compareHelper: 'फैसला करने से पहले सबसे ज़रूरी फर्क एक साथ देखिए।',
+      bestFit: 'इस काम के लिए सबसे सही',
+      alternateFit: 'यह कब चुनें',
+      nextAction: 'अगला कदम',
+      nextActionCopy: 'इस option को देखें, दूसरे option से तुलना करें, या ज़रूरत हो तो support से पुष्टि करें।',
       why: 'यह क्यों सही है',
       apply: 'इसे कैसे लगाएँ',
       practical: 'काम की ज़रूरी बातें',
@@ -434,6 +454,9 @@ function App() {
   const [isListening, setIsListening] = useState(false)
   const [voiceStatus, setVoiceStatus] = useState('')
   const [lastParsed, setLastParsed] = useState<ParseResult | null>(null)
+  const [selectedRecommendationId, setSelectedRecommendationId] = useState<string | null>(null)
+  const [compareSelection, setCompareSelection] = useState<string[]>([])
+  const [showComparison, setShowComparison] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
 
   const activeLanguage = language === 'hi' ? 'hi' : 'en'
@@ -443,7 +466,7 @@ function App() {
   const applicationAreaOptions = useMemo(() => getApplicationAreaOptions(activeLanguage), [activeLanguage])
   const bondStrengthOptions = useMemo(() => getBondStrengthOptions(activeLanguage), [activeLanguage])
   const jobShortcuts = useMemo(() => getJobShortcuts(activeLanguage), [activeLanguage])
-  const recommendation = getRecommendation(answers, activeLanguage)
+  const recommendationOptions = useMemo(() => getRecommendationOptions(answers, activeLanguage), [answers, activeLanguage])
   const [languagePrompt, setLanguagePrompt] = useState<string>(translations.en.emptyPrompt)
   const visibleFlow = useMemo(() => {
     const steps: StepId[] = ['job-type']
@@ -472,14 +495,18 @@ function App() {
   const selectedArea = applicationAreaOptions.find((item) => item.id === answers.applicationArea)
   const selectedPriority = bondStrengthOptions.find((item) => item.id === answers.bondStrength)
   const summaryItems = [
-    selectedJobType ? { label: t.summaryLabels.jobType, value: selectedJobType.label } : null,
-    selectedSurfaceA ? { label: t.summaryLabels.surfaceA, value: selectedSurfaceA.label } : null,
-    selectedSurfaceB ? { label: t.summaryLabels.surfaceB, value: selectedSurfaceB.label } : null,
-    selectedArea ? { label: t.summaryLabels.area, value: selectedArea.label } : null,
-    selectedPriority ? { label: t.summaryLabels.priority, value: selectedPriority.label } : null,
-  ].filter(Boolean) as Array<{ label: string; value: string }>
+    selectedJobType ? { key: 'job-type' as StepId, label: t.summaryLabels.jobType, value: selectedJobType.label } : null,
+    selectedSurfaceA ? { key: 'surface-a' as StepId, label: t.summaryLabels.surfaceA, value: selectedSurfaceA.label } : null,
+    selectedSurfaceB ? { key: 'surface-b' as StepId, label: t.summaryLabels.surfaceB, value: selectedSurfaceB.label } : null,
+    selectedArea ? { key: 'area' as StepId, label: t.summaryLabels.area, value: selectedArea.label } : null,
+    selectedPriority ? { key: 'priority' as StepId, label: t.summaryLabels.priority, value: selectedPriority.label } : null,
+  ].filter(Boolean) as Array<{ key: StepId; label: string; value: string }>
   const showTextInput = currentStep === 'job-type'
   const showDetectedPanel = !showTextInput && currentStep !== 'result' && Boolean(lastParsed)
+  const recommendation =
+    recommendationOptions.find((item) => item.id === selectedRecommendationId) ??
+    recommendationOptions[0] ??
+    null
   const isFallbackRecommendation = recommendation?.id === 'support-check'
   const detectedSignals = lastParsed ? getDetectedSignals(lastParsed.answers, activeLanguage) : []
   const refinementSuggestions = lastParsed?.refinementSuggestions ?? []
@@ -499,12 +526,17 @@ function App() {
       : currentStep === 'result'
         ? recommendation?.productType ?? t.simpleRuleText
         : languagePrompt
+  const comparisonProducts = recommendationOptions.filter((item) => compareSelection.includes(item.id))
+  const comparisonRows = recommendation ? buildComparisonRows(comparisonProducts, answers, activeLanguage) : []
 
   const resetFlow = () => {
     setAnswers(initialAnswers)
     setCurrentStep('job-type')
     setJobInput('')
     setLastParsed(null)
+    setSelectedRecommendationId(null)
+    setCompareSelection([])
+    setShowComparison(false)
     setLanguagePrompt(t.emptyPrompt)
     setVoiceStatus(t.voiceReady)
   }
@@ -522,6 +554,27 @@ function App() {
   }, [activeLanguage, language])
 
   useEffect(() => {
+    if (recommendationOptions.length === 0) {
+      setSelectedRecommendationId(null)
+      setCompareSelection([])
+      setShowComparison(false)
+      return
+    }
+
+    setSelectedRecommendationId((current) => {
+      if (current && recommendationOptions.some((item) => item.id === current)) {
+        return current
+      }
+      return recommendationOptions[0].id
+    })
+
+    setCompareSelection((current) => {
+      const filtered = current.filter((id) => recommendationOptions.some((item) => item.id === id))
+      return filtered.length > 0 ? filtered : [recommendationOptions[0].id]
+    })
+  }, [recommendationOptions])
+
+  useEffect(() => {
     return () => {
       recognitionRef.current?.stop()
     }
@@ -536,6 +589,15 @@ function App() {
     setAnswers(parsed.answers)
     setCurrentStep(parsed.missingStep)
     setLanguagePrompt(parsed.prompt)
+  }
+
+  const toggleCompareSelection = (recommendationId: string) => {
+    setCompareSelection((current) => {
+      if (current.includes(recommendationId)) {
+        return current.filter((id) => id !== recommendationId)
+      }
+      return [...current, recommendationId].slice(0, 3)
+    })
   }
 
   const getSpeechLanguage = (selectedLanguage: AppLanguage) => {
@@ -872,6 +934,13 @@ function App() {
                           {t.resultTitles.viewProduct}
                         </a>
                       ) : null}
+                      <button
+                        className={`compare-toggle ${compareSelection.includes(recommendation.id) ? 'is-active' : ''}`}
+                        onClick={() => toggleCompareSelection(recommendation.id)}
+                        type="button"
+                      >
+                        {t.resultTitles.compareLabel}
+                      </button>
                     </div>
                     {recommendation.imageUrl ? (
                       <div className="product-packshot-frame">
@@ -915,27 +984,76 @@ function App() {
                 {!isFallbackRecommendation && recommendation.alternateProducts.length > 0 && (
                   <section className="result-section">
                     <h4>{t.resultTitles.alternates}</h4>
-                    <div className="alternate-chip-row">
-                      {recommendation.alternateProducts.map((product) => (
-                        <span className="alternate-chip" key={product}>{product}</span>
-                      ))}
+                    <p className="result-section-copy">{t.resultTitles.compareHelper}</p>
+                    <div className="alternate-option-list">
+                      {recommendationOptions
+                        .filter((item) => item.id !== recommendation.id)
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className={`alternate-option-card ${selectedRecommendationId === item.id ? 'is-selected' : ''}`}
+                          >
+                            <div className="alternate-option-copy">
+                              <span className="alternate-option-name">{item.product}</span>
+                              <span className="alternate-option-reason">{item.heroNote}</span>
+                              <span className="alternate-option-context">{t.resultTitles.alternateFit}</span>
+                            </div>
+                            <div className="alternate-option-actions">
+                              <button
+                                className="alternate-view-link"
+                                onClick={() => setSelectedRecommendationId(item.id)}
+                                type="button"
+                              >
+                                {t.resultTitles.switchLabel}
+                              </button>
+                              <button
+                                className={`compare-toggle compare-toggle-small ${compareSelection.includes(item.id) ? 'is-active' : ''}`}
+                                onClick={() => toggleCompareSelection(item.id)}
+                                type="button"
+                              >
+                                {t.resultTitles.compareLabel}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                     </div>
+                    {compareSelection.length >= 2 ? (
+                      <button
+                        className="primary-button compare-launch"
+                        onClick={() => setShowComparison((current) => !current)}
+                        type="button"
+                      >
+                        {t.resultTitles.compareReady}
+                      </button>
+                    ) : null}
                   </section>
                 )}
 
+                {showComparison && comparisonProducts.length >= 2 ? (
+                  <ComparisonSection
+                    activeRecommendationId={recommendation.id}
+                    products={comparisonProducts}
+                    rows={comparisonRows}
+                    title={t.resultTitles.compareTitle}
+                    bestFitLabel={t.resultTitles.bestFit}
+                  />
+                ) : null}
+
                 {!isFallbackRecommendation ? (
                   <>
-                    <ResultSteps title={t.resultTitles.apply} items={recommendation.howToApply} />
-                    <PracticalGuide
+                    <PracticalGuideCard
                       title={t.resultTitles.practical}
+                      applyTitle={t.resultTitles.apply}
+                      steps={recommendation.howToApply}
                       waitLabel={t.resultTitles.wait}
                       waitValue={recommendation.waitTime}
                       clampLabel={t.resultTitles.clamp}
                       clampValue={recommendation.clampNeed}
                       warningLabel={t.resultTitles.warning}
                       warningValue={recommendation.surfaceWarning}
+                      avoidTitle={t.resultTitles.avoid}
+                      avoidItems={recommendation.avoid}
                     />
-                    <ResultList title={t.resultTitles.avoid} items={recommendation.avoid} />
                   </>
                 ) : null}
 
@@ -943,6 +1061,27 @@ function App() {
                   <span className="glance-label">{t.resultTitles.unsure}</span>
                   <p>{recommendation.supportNote}</p>
                 </div>
+
+                <section className="result-section next-action-section">
+                  <h4>{t.resultTitles.nextAction}</h4>
+                  <p className="result-section-copy">{t.resultTitles.nextActionCopy}</p>
+                  <div className="next-action-row">
+                    {recommendation.pageUrl ? (
+                      <a className="result-link" href={recommendation.pageUrl} rel="noreferrer" target="_blank">
+                        {t.resultTitles.viewProduct}
+                      </a>
+                    ) : null}
+                    {isFallbackRecommendation ? (
+                      <a className="support-action" href={`tel:${supportValues.care.replace(/[^+\d]/g, '')}`}>
+                        {t.supportActions.call}
+                      </a>
+                    ) : compareSelection.length >= 2 ? (
+                      <button className="ghost-button compare-secondary" onClick={() => setShowComparison(true)} type="button">
+                        {t.resultTitles.compareReady}
+                      </button>
+                    ) : null}
+                  </div>
+                </section>
               </div>
             )}
           </section>
@@ -954,10 +1093,20 @@ function App() {
             {summaryItems.length > 0 ? (
               <div className="summary-chip-list summary-chip-list-structured">
                 {summaryItems.map((item) => (
-                  <div className="summary-chip" key={item.label}>
+                  <button
+                    className={`summary-chip ${currentStep === 'result' ? 'is-link' : ''}`}
+                    key={item.label}
+                    onClick={() => {
+                      if (currentStep === 'result') {
+                        setShowComparison(false)
+                        setCurrentStep(item.key)
+                      }
+                    }}
+                    type="button"
+                  >
                     <span>{item.label}</span>
                     <strong>{item.value}</strong>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (
@@ -1044,66 +1193,109 @@ function OptionGrid({
   )
 }
 
-function ResultList({ items, title }: { items: string[]; title: string }) {
+function ComparisonSection({
+  activeRecommendationId,
+  bestFitLabel,
+  products,
+  rows,
+  title,
+}: {
+  activeRecommendationId: string
+  bestFitLabel: string
+  products: Recommendation[]
+  rows: Array<{ label: string; values: string[] }>
+  title: string
+}) {
   return (
     <section className="result-section">
       <h4>{title}</h4>
-      <ul>
-        {items.map((item) => (
-          <li key={item}>{item}</li>
+      <div className="comparison-table" style={{ ['--comparison-columns' as string]: String(products.length) }}>
+        <div className="comparison-head comparison-row">
+          <div className="comparison-label-cell" />
+          {products.map((product) => (
+            <div className="comparison-value-cell comparison-product-head" key={product.id}>
+              <strong>{product.product}</strong>
+              {product.id === activeRecommendationId ? <span className="comparison-badge">{bestFitLabel}</span> : null}
+            </div>
+          ))}
+        </div>
+        {rows.map((row) => (
+          <div className="comparison-row" key={row.label}>
+            <div className="comparison-label-cell">{row.label}</div>
+            {row.values.map((value, index) => (
+              <div className="comparison-value-cell" key={`${row.label}-${products[index]?.id ?? index}`}>
+                {value}
+              </div>
+            ))}
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   )
 }
 
-function ResultSteps({ items, title }: { items: string[]; title: string }) {
-  return (
-    <section className="result-section">
-      <h4>{title}</h4>
-      <ol className="result-steps">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ol>
-    </section>
-  )
-}
-
-function PracticalGuide({
+function PracticalGuideCard({
+  applyTitle,
+  avoidItems,
+  avoidTitle,
+  clampLabel,
+  clampValue,
+  steps,
   title,
   waitLabel,
   waitValue,
-  clampLabel,
-  clampValue,
   warningLabel,
   warningValue,
 }: {
+  applyTitle: string
+  avoidItems: string[]
+  avoidTitle: string
+  clampLabel: string
+  clampValue: string
+  steps: string[]
   title: string
   waitLabel: string
   waitValue: string
-  clampLabel: string
-  clampValue: string
   warningLabel: string
   warningValue: string
 }) {
   return (
     <section className="result-section">
       <h4>{title}</h4>
-      <dl className="practical-guide">
-        <div>
-          <dt>{waitLabel}</dt>
-          <dd>{waitValue}</dd>
+      <div className="practical-stack">
+        <div className="practical-subsection">
+          <span className="decision-label">{applyTitle}</span>
+          <ol className="result-steps">
+            {steps.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
         </div>
-        <div>
-          <dt>{clampLabel}</dt>
-          <dd>{clampValue}</dd>
+        <div className="practical-subsection">
+          <dl className="practical-guide">
+            <div>
+              <dt>{waitLabel}</dt>
+              <dd>{waitValue}</dd>
+            </div>
+            <div>
+              <dt>{clampLabel}</dt>
+              <dd>{clampValue}</dd>
+            </div>
+            <div>
+              <dt>{warningLabel}</dt>
+              <dd>{warningValue}</dd>
+            </div>
+          </dl>
         </div>
-        <div>
-          <dt>{warningLabel}</dt>
-          <dd>{warningValue}</dd>
+        <div className="practical-subsection">
+          <span className="decision-label">{avoidTitle}</span>
+          <ul className="proof-list">
+            {avoidItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
-      </dl>
+      </div>
     </section>
   )
 }
