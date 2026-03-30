@@ -802,7 +802,7 @@ export function getRecommendationOptions(answers: AdvisorAnswers, language: AppL
     row.surfaceA && row.surfaceB
       ? `${row.surfaceA} + ${row.surfaceB}`
       : jobTypeLabels[answers.jobType][language]
-  return candidates.slice(0, 4).map((productName, index) =>
+  return candidates.slice(0, 4).map((productName) =>
     profileToRecommendation(
       productCatalog[productName],
       language,
